@@ -3,25 +3,38 @@ import Modal from '../../components/UI/Modal/Modal';
 import Aux from '../Aux/Aux';
 
 const withErrorHandler = (WrappedComponent, axios) => {
+  // This anonymous class is created each time withErrorHandler is called
+  // (wrappped around a default export)
   return class extends Component {
     state = {
       error: null
     }
 
     componentWillMount() {
-      axios
+      this.reqInterceptor = axios
         .interceptors
         .request
         .use(req => {
           this.setState({error: null});
           return req;
         });
-      axios
+      this.resInterceptor = axios
         .interceptors
         .response
         .use(res => res, error => {
           this.setState({error: error});
         });
+    }
+
+    componentWillUnmount() {
+      axios
+        .interceptors
+        .request
+        .eject(this.reqInterceptor);
+      axios
+        .interceptors
+        .request
+        .eject(this.resInterceptor);
     }
 
     errorConfirmedHandler = () => {
